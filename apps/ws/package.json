@@ -1,0 +1,21 @@
+{
+  "name": "ws",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "bun --watch index.ts",
+    "start": "bun index.ts"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@repo/typescript-config": "*"
+  },
+  "dependencies": {
+    "@repo/common": "*",
+    "@repo/db": "*",
+    "@types/ws": "^8.18.1",
+    "dotenv": "^16.4.7",
+    "ws": "^8.22.0"
+  }
+}

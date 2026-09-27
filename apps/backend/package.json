@@ -9,6 +9,7 @@
     "check-types": "tsc --noEmit"
   },
   "dependencies": {
+    "@repo/common": "*",
     "@repo/db": "*",
     "bcryptjs": "^2.4.3",
     "cookie-parser": "^1.4.7",
