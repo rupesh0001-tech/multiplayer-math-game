@@ -1,5 +1,4 @@
 import jwt from "jsonwebtoken";
-import { stringify } from "querystring";
 
 // Common Environment & Configuration
 export const JWT_SECRET =
@@ -38,42 +37,73 @@ export const generateJWT = (
   });
 };
 
-function calculate(a, b, op){ 
-  if(op === '+') return a + b;
-  if(op === '-') return a - b;
-  if(op === '*') return a * b;
-  if(op === '/') return a / b;
+export interface Question {
+  id: string;
+  op1: number;
+  op2: number;
+  operand: string;
+  que: string;
+  ans: number;
 }
 
+export type SafeQuestion = Omit<Question, "ans">;
 
-export function generateQues(n : number){ 
+export function calculate(a: number, b: number, op: string): number {
+  switch (op) {
+    case "+":
+      return a + b;
+    case "-":
+      return a - b;
+    case "*":
+      return a * b;
+    case "/":
+      return b !== 0 ? Math.floor(a / b) : 0;
+    default:
+      return a + b;
+  }
+}
 
-  const ques = []
-  const oprant = ['+', '-', '*', '/']
+export function generateQues(n: number = 10): Question[] {
+  const operators = ["+", "-", "*", "/"];
+  const questions: Question[] = [];
 
-  for(let i=0; i<n; i++){ 
-    let op1 = (( Math.random() * 9 ) + 1); 
-    let op2 =( Math.random() * 9 ) + 1;
-    let o = oprant[ ( Math.random() * 3 ) + 1] 
+  for (let i = 0; i < n; i++) {
+    const op = operators[Math.floor(Math.random() * operators.length)] || "+";
+    let op1: number;
+    let op2: number;
+    let answer: number;
 
-    let a; 
-    
-    const que = { 
-      que : op1.toString() + o +  op2.toString() , 
-      ans : calculate(op1, op2, o)
+    if (op === "+") {
+      op1 = Math.floor(Math.random() * 50) + 1;
+      op2 = Math.floor(Math.random() * 50) + 1;
+      answer = op1 + op2;
+    } else if (op === "-") {
+      op1 = Math.floor(Math.random() * 60) + 10;
+      op2 = Math.floor(Math.random() * op1) + 1; // ensure positive answer
+      answer = op1 - op2;
+    } else if (op === "*") {
+      op1 = Math.floor(Math.random() * 12) + 2;
+      op2 = Math.floor(Math.random() * 12) + 2;
+      answer = op1 * op2;
+    } else {
+      // Division: choose quotient and divisor, compute dividend
+      op2 = Math.floor(Math.random() * 10) + 2;
+      const quotient = Math.floor(Math.random() * 12) + 1;
+      op1 = op2 * quotient;
+      answer = quotient;
     }
 
-    ques.push(que)
-    
+    questions.push({
+      id: `q_${Date.now()}_${i}_${Math.random().toString(36).substring(2, 7)}`,
+      op1,
+      op2,
+      operand: op,
+      que: `${op1} ${op === "*" ? "×" : op === "/" ? "÷" : op} ${op2}`,
+      ans: answer,
+    });
   }
 
-
-  return ques
-
-
-
-
-  return ques
+  return questions;
 }
 
 // Aliases for convenience
