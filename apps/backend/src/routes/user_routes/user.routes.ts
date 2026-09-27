@@ -3,6 +3,8 @@ import { registerUser } from "../../controllers/user_controllers/registerUser.co
 import { loginUser } from "../../controllers/user_controllers/loginUser.controller.js";
 import { getUserProfile } from "../../controllers/user_controllers/getUserProfile.controller.js";
 import { logoutUser } from "../../controllers/user_controllers/logoutUser.controller.js";
+import { getLeaderboard } from "../../controllers/user_controllers/getLeaderboard.controller.js";
+import { getGameHistory } from "../../controllers/user_controllers/getGameHistory.controller.js";
 import {
   authenticateUser,
   validateRequest,
@@ -18,9 +20,11 @@ const router: Router = Router();
 router.post("/register", validateRequest(registerSchema), registerUser);
 router.post("/login", validateRequest(loginSchema), loginUser);
 router.post("/logout", logoutUser);
+router.get("/leaderboard", getLeaderboard);
 
 // Protected routes
 router.get("/profile", authenticateUser, getUserProfile);
 router.get("/me", authenticateUser, getUserProfile);
+router.get("/history", authenticateUser, getGameHistory);
 
 export default router;
