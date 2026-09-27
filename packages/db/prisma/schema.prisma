@@ -1,0 +1,147 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  username  String   @unique
+  name      String?
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sentFriendRequests     FriendRequest[] @relation("SentFriendRequests")
+  receivedFriendRequests FriendRequest[] @relation("ReceivedFriendRequests")
+
+  friendshipsAsUser1 Friendship[] @relation("User1Friendships")
+  friendshipsAsUser2 Friendship[] @relation("User2Friendships")
+
+  gamesAsUser1 Game[] @relation("GameUser1")
+  gamesAsUser2 Game[] @relation("GameUser2")
+
+  gameAnswers GameAnswer[]
+}
+
+enum FriendRequestStatus {
+  pending
+  accepted
+  rejected
+}
+
+model FriendRequest {
+  id         String             @id @default(cuid())
+  senderId   String
+  receiverId String
+  status     FriendRequestStatus @default(pending)
+
+  sender   User @relation("SentFriendRequests", fields: [senderId], references: [id])
+  receiver User @relation("ReceivedFriendRequests", fields: [receiverId], references: [id])
+
+  friendship Friendship? @relation("RequestFriendship")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([senderId, status])
+  @@index([receiverId, status])
+}
+
+model Friendship {
+  id        String @id @default(cuid())
+  user1Id   String
+  user2Id   String
+  requestId String @unique
+
+  user1   User          @relation("User1Friendships", fields: [user1Id], references: [id])
+  user2   User          @relation("User2Friendships", fields: [user2Id], references: [id])
+  request FriendRequest @relation("RequestFriendship", fields: [requestId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@unique([user1Id, user2Id])
+  @@index([user1Id])
+  @@index([user2Id])
+}
+
+model Problem {
+  id       String @id @default(cuid())
+  op1      Int
+  op2      Int
+  operand  String
+  answer   Int
+
+  gameProblems GameProblem[]
+}
+
+model Game {
+  id String @id @default(cuid())
+
+  user1Id String
+  user2Id String
+
+  user1 User @relation("GameUser1", fields: [user1Id], references: [id])
+  user2 User @relation("GameUser2", fields: [user2Id], references: [id])
+
+  problems GameProblem[]
+  answers  GameAnswer[]
+
+  user1SolvedCount Int @default(0)
+  user2SolvedCount Int @default(0)
+
+  status GameStatus @default(WAITING)
+  winnerId String?
+
+  createdAt  DateTime  @default(now())
+  startedAt  DateTime?
+  finishedAt DateTime?
+
+  @@index([user1Id])
+  @@index([user2Id])
+}
+
+enum GameStatus {
+  WAITING
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+model GameProblem {
+  id        String @id @default(cuid())
+  gameId    String
+  problemId String
+
+  game    Game    @relation(fields: [gameId], references: [id])
+  problem Problem @relation(fields: [problemId], references: [id])
+
+  answers GameAnswer[]
+
+  @@unique([gameId, problemId])
+  @@index([gameId])
+  @@index([problemId])
+}
+
+model GameAnswer {
+  id            String   @id @default(cuid())
+  gameId        String
+  gameProblemId String
+  userId        String
+
+  answer    Int
+  isCorrect Boolean
+  answeredAt DateTime @default(now())
+
+  game        Game        @relation(fields: [gameId], references: [id])
+  gameProblem GameProblem @relation(fields: [gameProblemId], references: [id])
+  user        User        @relation(fields: [userId], references: [id])
+
+  @@index([gameId])
+  @@index([gameProblemId])
+  @@index([userId])
+}
