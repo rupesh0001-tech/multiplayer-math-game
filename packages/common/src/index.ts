@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import { stringify } from "querystring";
 
 // Common Environment & Configuration
 export const JWT_SECRET =
@@ -36,6 +37,44 @@ export const generateJWT = (
     expiresIn: expiresIn as jwt.SignOptions["expiresIn"],
   });
 };
+
+function calculate(a, b, op){ 
+  if(op === '+') return a + b;
+  if(op === '-') return a - b;
+  if(op === '*') return a * b;
+  if(op === '/') return a / b;
+}
+
+
+export function generateQues(n : number){ 
+
+  const ques = []
+  const oprant = ['+', '-', '*', '/']
+
+  for(let i=0; i<n; i++){ 
+    let op1 = (( Math.random() * 9 ) + 1); 
+    let op2 =( Math.random() * 9 ) + 1;
+    let o = oprant[ ( Math.random() * 3 ) + 1] 
+
+    let a; 
+    
+    const que = { 
+      que : op1.toString() + o +  op2.toString() , 
+      ans : calculate(op1, op2, o)
+    }
+
+    ques.push(que)
+    
+  }
+
+
+  return ques
+
+
+
+
+  return ques
+}
 
 // Aliases for convenience
 export const verifyToken = verifyJWT;
