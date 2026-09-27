@@ -2,7 +2,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 import { WebSocketServer, WebSocket } from "ws";
-import { verifyJWT, JWT_SECRET } from "@repo/common";
+import { verifyJWT, JWT_SECRET, generateQues } from "@repo/common";
 
 const PORT = Number(process.env.PORT) || 8080;
 
@@ -17,12 +17,22 @@ interface OnlineUser {
     socket: WebSocket;
 }
 
+
+
+interface GameI {
+    id : number,
+    admin : string | null, 
+    status : 'pending' | 'started' | 'completeed', 
+    user : string | null, 
+    questionAns : any
+}
+
 const onlineUsers = new Map<string, OnlineUser>();
-const games = new Map();
+const games = new Map<number, GameI> ();
 
 wss.on("connection", (socket: WebSocket) => {
     let authenticatedUserId: string | null = null;
-    let currentGame: any = null
+    let currentGame: GameI | null = null
 
     socket.on("message", (event) => {
         try {
@@ -73,14 +83,28 @@ wss.on("connection", (socket: WebSocket) => {
                         currentGame = game
                         break;
                     }
-
+                    
+                    
                     if (currentGame !== game) {
-                        const newGame = {
+
+                         const id = (Math.random() * 7) + 1000;
+                        const newGame: GameI = {
+                            id,
                             admin: authenticatedUserId,
                             user: null,
                             status: 'pending',
                             questionAns: []
                         }
+
+                        const ques: any[] = generateQues(20);
+
+                        newGame.questionAns.push(ques)
+                       
+
+                        games.set(id, newGame);
+
+
+
 
                         wss.clients.forEach((c) => {
                             if (socket === c) return;
@@ -88,15 +112,46 @@ wss.on("connection", (socket: WebSocket) => {
                                 JSON.stringify({
                                     type: 'game_req',
                                     message: ' a new game started ',
-                                    newGame,
+                                    id,
                                     userId: authenticatedUserId
                                 })
                             )
                         })
 
+                        return;
+
                     }
+
+
                 }
+
+                if(currentGame === null ){ 
+                    
+                    socket.send(
+                        JSON.stringify({ 
+                                message : 'no game found try again after some time='
+                            })
+                    )
+
+                    return
+                }
+
+                currentGame.user = authenticatedUserId
+                currentGame.status = 'started'
+
+                socket.send(JSON.stringify({ 
+                    type: 'game_accepted', 
+                    gameid : currentGame.id,
+                    message : ' connect to user '
+                }))
+
+
+
+
             }
+
+            
+
 
 
         } catch (err) {
